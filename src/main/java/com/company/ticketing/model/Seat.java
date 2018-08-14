@@ -25,13 +25,19 @@ public class Seat {
 		return row;
 	}
 	public void setRow(int row) {
+		if(row < 0) {
+			throw new IllegalArgumentException("Row cannot be less than zero");
+		}
 		this.row = row;
 	}
 	public int getNum() {
 		return num;
 	}
-	public void setNum(int col) {
-		this.num = col;
+	public void setNum(int num) {
+		if(num < 0) {
+			throw new IllegalArgumentException("Seat number cannot be less than zero");
+		}
+		this.num = num;
 	}
 	public boolean getReserved() {
 		return reserved;

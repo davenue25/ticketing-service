@@ -77,6 +77,7 @@ public class SeatHold {
 			Timer timer = new Timer();
 			TimerTask task = new TimerTask() {
 				public void run() {
+					System.out.println("SeatHold.holdSeats() service = "  + service);
 					service.cancelSeatHold(seatHold); 
 				}
 			};

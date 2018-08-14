@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -155,11 +156,20 @@ public class TicketServiceImpl implements TicketService {
 			throw new IllegalArgumentException("Number of seats must be greater than 0");
 		}
 		
+		// Don't have that many seats available
 		int availableSeats = numSeatsAvailable();
 		if(numSeats > availableSeats) {
 			throw new RuntimeException("Number of seats requested not available. Requested " 
 				+ numSeats + " but have " + availableSeats);
 		}
+		
+		// Email is invalid
+		EmailValidator ev = EmailValidator.getInstance();
+		boolean emailValid = ev.isValid(customerEmail);
+		if(!emailValid) {
+			throw new RuntimeException("Invalid email: " + customerEmail);
+		}
+		
 		SeatHold seatHold = new SeatHold();
 		seatHold.setId(seatHolderIdCounter);
 		seatHolderIdCounter++;

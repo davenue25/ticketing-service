@@ -6,7 +6,7 @@ Users may use the ticketing service to purchase tickets to a performance venue. 
 
 If the user chooses to reserve those seats within the "on hold" time period, those seats are reserved and a
 reservation confirmation id is generated. If the "on hold" period is expired, the seats cannot be reserved and
-those seats are available for on hold by another user.
+those seats are available for someone else to hold.
 
 The seats returned for an on hold request will be determined by the ticketing service. The service will try
 to find the best seats available. The assumption is that the best seats are the closest to the stage, and 

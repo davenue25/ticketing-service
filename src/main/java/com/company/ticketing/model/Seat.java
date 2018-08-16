@@ -1,25 +1,28 @@
 package com.company.ticketing.model;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-import org.springframework.beans.factory.annotation.Value;
-
 /**
  * A specific seat in the venue.
  * @author daniel
  *
  */
-public class Seat {
+public class Seat extends BaseModel {
 
+	// Seat row
 	private int row = 0;
+	
+	// Seat number
 	private int num = 0;
 	
+	// Seat reserved
 	private boolean reserved = false;
+	
+	// Seat on hold
 	private boolean onHold   = false;
 	
-	@Value("${seat.reservationMaxSeconds:60}")
-	private long reserveTime    = 0;
+	public Seat(int row, int num) {
+		this.row = row;
+		this.num = num;
+	}
 	
 	public int getRow() {
 		return row;
@@ -50,20 +53,6 @@ public class Seat {
 	}
 	public void setHold(boolean onHold) {
 		this.onHold = onHold;
-//		if(!reserved && onHold) {
-//			Timer timer = new Timer();
-//			TimerTask task = new TimerTask() {
-//				public void run() {
-//					setHold(false);
-//				}
-//			};
-//			timer.schedule(task, reserveTime);
-//		}
-	}
-	
-	@Override
-	public String toString() {
-		return "Seat(" + row + "," + num + ") reserved = " + reserved + ", onHold = " + onHold + ", available = " + getAvailable();
 	}
 	
 	public boolean getAvailable() {

@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
  /** 
  * Tests 
@@ -24,7 +24,7 @@ public class SeatTest {
         boolean hold = true;
         int row = 471;
 
-        Seat model = new Seat();
+        Seat model = new Seat(row, num);
 
         model.setReserved(reserved);
         model.setNum(num);

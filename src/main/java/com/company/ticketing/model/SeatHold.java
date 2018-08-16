@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.company.ticketing.service.TicketService;
 
 /**
@@ -18,19 +16,24 @@ import com.company.ticketing.service.TicketService;
  * @author daniel
  *
  */
-public class SeatHold {
+public class SeatHold extends BaseModel {
 
-	private List<Seat> listSeats = new ArrayList<>();
+	private List<Seat> seatList = new ArrayList<>();
 	
+	// Is this seat hold active?
 	private boolean active = false;
 	
-	// Was "on hold" functionality performed?
+	// Were seats held?
 	private boolean holdSeatsFlag = false;
-	
 	
 	private TicketService service;
 	
-	@Autowired
+	private String customerEmail;
+	
+	public SeatHold(TicketService service) {
+		this.service = service;
+	}
+	
 	public TicketService getService() {
 		return service;
 	}
@@ -39,8 +42,6 @@ public class SeatHold {
 		this.service = service;
 	}
 
-	private String customerEmail;
-	
 	private int id;
 	
 	public void setId(int id) {
@@ -59,16 +60,21 @@ public class SeatHold {
 		return customerEmail;
 	}
 
+	/**
+	 * Add a seat to this seat holder. After all seats are added,
+	 * call {@link #holdSeats(long)}
+	 * @param seat
+	 */
 	public void addSeat(Seat seat) {
 		if(seat != null && !seat.getReserved() && !seat.getHold()) {
 			seat.setHold(true);
-			listSeats.add(seat);
+			seatList.add(seat);
 		}
 	}
 	
 	public void holdSeats(long seatsHoldTimeMillis) {
-		if(listSeats != null && listSeats.size() > 0) {
-			for(Seat seat : listSeats) {
+		if(seatList != null && seatList.size() > 0) {
+			for(Seat seat : seatList) {
 				seat.setHold(true);
 			}
 			
@@ -86,26 +92,6 @@ public class SeatHold {
 			holdSeatsFlag = true;
 		}
 	}
-	
-//	public void holdSeats(long seatsHoldTimeMillis) {
-//		active = true;
-//		onHoldFlag = true;
-//		if(listSeats != null) {
-//			for(Seat seat : listSeats) {
-//				seat.setHold(true);
-//			}
-//			
-//			final SeatHold seatHold = this;
-//			
-//			Timer timer = new Timer();
-//			TimerTask task = new TimerTask() {
-//				public void run() {
-//					service.cancelSeatHold(seatHold);
-//				}
-//			};
-//			timer.schedule(task, seatsHoldTimeMillis);
-//		}
-//	}
 	
 	public void cancelHold() {
 		active = false;
@@ -133,8 +119,8 @@ public class SeatHold {
 		boolean reservedFlag = false;
 		
 		if(active) {
-			if(listSeats != null && listSeats.size() > 0) {
-				for(Seat seat : listSeats) {
+			if(seatList != null && seatList.size() > 0) {
+				for(Seat seat : seatList) {
 					seat.setReserved(true);
 				}
 				reservedFlag = true;
@@ -144,7 +130,7 @@ public class SeatHold {
 	}
 	
 	public int totalSeats() {
-		return listSeats.size();
+		return seatList.size();
 	}
 	
 	public boolean getActive() {
@@ -156,16 +142,12 @@ public class SeatHold {
 	}
 	
 	public List<Seat> getSeats() {
-		return listSeats;
-	}
-	
-	public void addListener(TicketService service) {
-		this.service = service;
+		return seatList;
 	}
 	
 	public String toString() {
 		String x = null;
-		for(Seat s: listSeats) {
+		for(Seat s: seatList) {
 			x += s;
 		}
 		return x;

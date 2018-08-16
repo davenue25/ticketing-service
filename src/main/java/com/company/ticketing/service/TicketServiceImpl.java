@@ -6,25 +6,25 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.validator.routines.EmailValidator;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import com.company.ticketing.model.Seat;
 import com.company.ticketing.model.SeatHold;
 import com.company.ticketing.model.SeatUnavailable;
 
-@Service
 public class TicketServiceImpl implements TicketService {
 	
-	private long seatsHoldTimeMillis;
+	private long seatsHoldTimeMillis = 60000l; // default one minute
 	
 	/**
 	 * Milliseconds to hold the a seat for.
 	 * @param millis
 	 */
-	@Value("${seats.holdTimeMillis:10}")
 	public void setHoldSeatsTimeMillis(long millis) {
 		this.seatsHoldTimeMillis = millis;
+	}
+	
+	public long getHoldSeatsTimeMillis() {
+		return seatsHoldTimeMillis;
 	}
 
 	private ArrayList<ArrayList<Seat>> venueSeats = new ArrayList<ArrayList<Seat>>();
@@ -34,7 +34,7 @@ public class TicketServiceImpl implements TicketService {
 	// Primitive counter/id generator for this programming challenge
 	private int seatHolderIdCounter = 0;
 	
-	// Hold all seathold objects, by seatHoldId (key)
+	// Hold all seathold objects: key = seatHoldId, value = seat hold object
 	private Map<Integer, SeatHold> seatHoldMap = new HashMap<>();
 	
 	
@@ -81,9 +81,7 @@ public class TicketServiceImpl implements TicketService {
 			ArrayList<Seat> currentRow = new ArrayList<>();
 			
 			for(int i = 0; i < seatSize; i++) {
-				Seat seat = new Seat();
-				seat.setRow(currentRowIndex);
-				seat.setNum(i);
+				Seat seat = new Seat(currentRowIndex, i);
 				currentRow.add(seat);
 				
 				totalSeats++;
@@ -93,23 +91,6 @@ public class TicketServiceImpl implements TicketService {
 		}
 		
 		venueSeatsInitialized = true;
-//		
-//		System.out.println("initializeVenueSize() " + venueSeats);
-//		for(List<Seat> row : venueSeats) {
-//			System.out.println("row size = " + row.size());
-//			for(Seat seat : row) {
-//				System.out.println(seat);
-//			}
-//		}
-	}
-	
-	public static void main(String[] args) {
-		ArrayList<Integer> list = new ArrayList<>();
-		list.add(1);
-		list.add(2);
-		list.add(3);
-		TicketServiceImpl impl = new TicketServiceImpl();
-		impl.initializeVenueSize(list);
 	}
 	
 	@Override
@@ -137,6 +118,16 @@ public class TicketServiceImpl implements TicketService {
 		return totalSeats;
 	}
 	
+	/**
+	 * Is the seat a valid that can be found in the venue.
+	 * 
+	 * @param currentRow the current row in the venue 
+	 * @param currentRowIndex the current row index 
+	 * @param currentRowSize the current row size
+	 * @param totalRows total rows
+	 * @param currentSeatIndex current seat index
+	 * @return
+	 */
 	public boolean isValidSeatLocation(List<Seat> currentRow, int currentRowIndex, int currentRowSize, int totalRows, 
 		int currentSeatIndex) {
 		if(currentRowIndex > totalRows || 
@@ -170,40 +161,15 @@ public class TicketServiceImpl implements TicketService {
 			throw new RuntimeException("Invalid email: " + customerEmail);
 		}
 		
-		SeatHold seatHold = new SeatHold();
+		SeatHold seatHold = new SeatHold(this);
 		seatHold.setId(seatHolderIdCounter);
 		seatHolderIdCounter++;
 		
 		seatHold.setCustomerEmail(customerEmail);
 		
-		int totalRows = venueSeats.size();
-		int rowIndex = 0;
-		int seatIndex = 0;
-		ArrayList<Seat> currentRow = venueSeats.get(rowIndex);
-		int currentRowSize = currentRow.size();
-		
-//		for(int i = 0; i < numSeats; i++) {
-//			if(seatIndex < currentRowSize) {
-//				Seat currentSeat = currentRow.get(seatIndex);
-//				if(currentSeat != null && !(currentSeat instanceof SeatUnavailable)) {
-//					seatHold.addSeat(currentSeat);
-//					currentRow.set(seatIndex, new SeatUnavailable());
-//				}
-//				seatIndex++;
-//			}
-//			else {
-//				seatIndex = 0;
-//				rowIndex++;
-//				if(rowIndex > totalRows) {
-//					break;
-//				}
-//			}
-//		}
-		
+		// Find the best seat in the venue
+		// Assumption: best seat equals closest to stage, and in the middle of the row
 		int foundSeats = 0;
-		
-		int currentRowTries = 0;// tried to look in the current this many times for seats
-		
 		
 		int op = 0; // 0 = middle, -1 go left of middle, 1 go right of middle
 		int goLeftCount = 0;
@@ -285,125 +251,12 @@ public class TicketServiceImpl implements TicketService {
 			}
 		}
 		
-		
-//		for(List<Seat> cr : venueSeats) {
-//			int totalRows = venueSeats != null ? venueSeats.size() : 0;
-//			int currentRowIndex = 0;
-//			
-//			ArrayList<Seat> currentRow = venueSeats.get(currentRowIndex);
-//			int currentRowSize = currentRow.size();
-//			
-//			int currentSeatIndex = currentRowSize / 2;
-//			boolean firstIndexReached = false;
-//			boolean lastIndexReached = false;
-//			
-//			int operation = 0; // 0 = middle, -1 go left of middle, 1 go right of middle
-//			
-//			for(int i = 0; i < currentRowSize; i++) {
-//			
-//				if(foundSeats == numSeats) {
-//					break;
-//				}
-//				if(firstIndexReached && lastIndexReached) {
-//					operation = 0;
-//					currentRowIndex++;
-//					currentSeatIndex 
-//					continue;
-//				}
-//				
-//				if(operation == 0) {
-//					boolean isValidSeatLocation = isValidSeatLocation(currentRow, currentRowIndex, currentRowSize, 
-//						totalRows, currentSeatIndex);
-//					operation = -1;
-//					if(isValidSeatLocation) {
-//						Seat seat = currentRow.get(currentSeatIndex);
-//						if(!(seat instanceof SeatUnavailable)) {
-//							seatHold.addSeat(seat);
-//							foundSeats++;
-//						}
-//					}
-//					
-//				}
-//				
-//				
-//				operation = (operation == 0 || operation == 1 ? -1 : 1);
-//				if(currentSeatIndex == 0) {
-//					firstIndexReached = true;
-//				}
-//				else if(currentSeatIndex == currentRowSize -1) {
-//					lastIndexReached = true;
-//				}
-//				if(firstIndexReached && lastIndexReached) {
-//					break;
-//				}
-//			}
-//			
-//			
-//		}
-		// Try to get best seats
-//		for(int i = 0; i < numSeats; i++) {
-//			if(rowIndex >= totalRows) {
-//				break;
-//			}
-//			currentRow = venueSeats.get(rowIndex);
-//			currentRowSize = currentRow.size();
-//			
-//			if(currentRowSize == 0) {
-//				rowIndex++;
-//				seatIndex = 0;
-//				continue;
-//			}
-//			else if(currentRowSize == 1) {
-//				Seat seat = currentRow.get(0);
-//				if(!(seat instanceof SeatUnavailable)) {
-//					seatHold.addSeat(seat);
-//					currentRow.set(seatIndex, new SeatUnavailable());
-//				}
-//				rowIndex++;
-//				seatIndex = 0;
-//				continue;
-//			}
-//			int remainder = currentRowSize % 2;
-//			if(remainder == 0) {
-//				int middleIndex = currentRowSize / 2;
-//				int goLeftIndex = 0;
-//				int goRightIndex = 0;
-//				
-//				int operation = 0; // 0 = middle, -1 go left of middle, 1 go right of middle
-//				boolean go = true;
-//				while(go) {
-//					int currentIndex = middleIndex;
-//					if(operation == -1) {
-//						goLeftIndex++;
-//						currentIndex -= goLeftIndex;
-//					}
-//					else if(operation == 1) {
-//						currentIndex += goRightIndex;
-//					}
-//					if(currentIndex < 0 || currentIndex >= currentRowSize) {
-//						go = false;
-//						rowIndex++;
-//						seatIndex = 0;
-//					}
-//					else {
-//						Seat seat = currentRow.get(middleIndex);
-//						if(!(seat instanceof SeatUnavailable)) {
-//							seatHold.addSeat(seat);
-//							currentRow.set(seatIndex, new SeatUnavailable());
-//							go = false;
-//						}
-//					}
-//					operation = (operation == 0 || operation == 1 ? -1 : 1);
-//				}
-//			}
-//		}
-		
+		// Found seats. Now hold them.
 		if(seatHold.totalSeats() > 0) {
 			seatHold.holdSeats(seatsHoldTimeMillis);
 			seatHoldMap.put(seatHold.getId(), seatHold);
 		}
 		
-		System.out.println("TicketServiceImpl findAndHold() " + seatHold);
 		return seatHold;
 	}
 
@@ -444,7 +297,6 @@ public class TicketServiceImpl implements TicketService {
 		}
 		return MSG_SH_INVALID_ID;
 	}
-	
 
 	@Override
 	public void cancelSeatHold(SeatHold seatHold) {

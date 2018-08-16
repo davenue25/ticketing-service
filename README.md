@@ -22,3 +22,7 @@ with the Java class files. It will also create the jar file, also in the target 
 will also run the unit tests automatically.
 
 An alternate way to run the tests is: mvn test
+
+### sample code to hold and reserve seats
+
+Look at the tests in TicketServiceImplTest.java.

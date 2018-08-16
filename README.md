@@ -21,7 +21,13 @@ seats.
 ### compiling and creating the ticketing service
 To compile the source code, clone this rep and install maven.
 
-Run this maven command to compile and create the artifact (jar): mvn clean package
+To clone the repo, make you have git installed on your system and then run:
+git clone https://github.com/davenue25/ticketing-service.git
+
+After installing maven, to the ticketing-service directory that was created with the clone command,
+and run this maven command to compile, run unit tests and create the ticketing service 
+artifact (jar):
+mvn clean package
 
 The above command will create a target directory. Inside the directory, there will be a "classes" directory
 with the Java class files. It will also create the jar file, also in the target directory. This command

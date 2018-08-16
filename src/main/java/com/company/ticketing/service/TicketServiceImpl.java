@@ -9,7 +9,6 @@ import org.apache.commons.validator.routines.EmailValidator;
 
 import com.company.ticketing.model.Seat;
 import com.company.ticketing.model.SeatHold;
-import com.company.ticketing.model.SeatUnavailable;
 
 public class TicketServiceImpl implements TicketService {
 	
@@ -98,7 +97,7 @@ public class TicketServiceImpl implements TicketService {
 		int totalSeats = 0;
 		for(ArrayList<Seat> rows : venueSeats) {
 			for(Seat seat : rows) {
-				if(!(seat instanceof SeatUnavailable)) {
+				if(seat.getAvailable()) {
 					totalSeats++;
 				}
 			}
@@ -164,6 +163,7 @@ public class TicketServiceImpl implements TicketService {
 		SeatHold seatHold = new SeatHold(this);
 		seatHold.setId(seatHolderIdCounter);
 		seatHolderIdCounter++;
+		seatHold.setActive(true);
 		
 		seatHold.setCustomerEmail(customerEmail);
 		
@@ -231,7 +231,7 @@ public class TicketServiceImpl implements TicketService {
 				}
 				
 				Seat seat = cr.get(index);
-				if(!(seat instanceof SeatUnavailable)) {
+				if(seat.getAvailable()) {
 					seatHold.addSeat(seat);
 					foundSeats++;
 				}
@@ -305,13 +305,16 @@ public class TicketServiceImpl implements TicketService {
 			seatHoldMap.remove(seatHold.getId());
 			
 			List<Seat> seats = seatHold.getSeats();
-			if(seats != null) {
+			int totalRows = venueSeats != null ? venueSeats.size() : 0;
+			if(seats != null && totalRows > 0) {
 				for(Seat seat : seats) {
 					seat.setHold(false);
 					int row = seat.getRow();
 					int num = seat.getNum();
+					
 					ArrayList<Seat> currentRow = venueSeats.get(row);
 					currentRow.set(num, seat);
+					
 				}
 			}
 		}

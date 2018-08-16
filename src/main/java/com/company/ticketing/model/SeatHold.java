@@ -30,6 +30,9 @@ public class SeatHold extends BaseModel {
 	
 	private String customerEmail;
 	
+	// Is it being reserved 
+	private boolean reserving = false;
+	
 	public SeatHold(TicketService service) {
 		this.service = service;
 	}
@@ -83,8 +86,9 @@ public class SeatHold extends BaseModel {
 			Timer timer = new Timer();
 			TimerTask task = new TimerTask() {
 				public void run() {
-					System.out.println("SeatHold.holdSeats() service = "  + service);
-					service.cancelSeatHold(seatHold); 
+					if(!reserving) {
+						service.cancelSeatHold(seatHold); 
+					}
 				}
 			};
 			timer.schedule(task, seatsHoldTimeMillis);
@@ -112,6 +116,8 @@ public class SeatHold extends BaseModel {
 	 * @return true if reserved, or false if not reserved
 	 */
 	public boolean reserveSeats() {
+		reserving = true;
+		
 		if(!holdSeatsFlag) {
 			return false;
 		}
@@ -122,10 +128,17 @@ public class SeatHold extends BaseModel {
 			if(seatList != null && seatList.size() > 0) {
 				for(Seat seat : seatList) {
 					seat.setReserved(true);
+					seat.setHold(false);
+					seat.setCustomerEmail(customerEmail);
 				}
 				reservedFlag = true;
 			}
 		}
+		
+		reserving = false;
+		
+		setActive(false);
+		
 		return reservedFlag;
 	}
 	
@@ -143,13 +156,5 @@ public class SeatHold extends BaseModel {
 	
 	public List<Seat> getSeats() {
 		return seatList;
-	}
-	
-	public String toString() {
-		String x = null;
-		for(Seat s: seatList) {
-			x += s;
-		}
-		return x;
 	}
 }

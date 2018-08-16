@@ -19,11 +19,22 @@ public class Seat extends BaseModel {
 	// Seat on hold
 	private boolean onHold   = false;
 	
+	private String customerEmail = null;
+	
 	public Seat(int row, int num) {
 		this.row = row;
 		this.num = num;
 	}
 	
+	public String getCustomerEmail() {
+		return customerEmail;
+	}
+
+	public void setCustomerEmail(String customerEmail) {
+		this.customerEmail = customerEmail;
+	}
+
+
 	public int getRow() {
 		return row;
 	}

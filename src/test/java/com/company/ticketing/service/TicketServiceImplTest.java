@@ -16,10 +16,16 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.company.ticketing.model.Seat;
 import com.company.ticketing.model.SeatHold;
 
+/**
+ * Test for the ticketing service implementation.
+ * 
+ * @author daniel
+ *
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class TicketServiceImplTest {
 	
-	private String email = "daniel@whatever.com";
+	private final String email = "someone@whatever.com";
 
 	@Test
 	public void test_initalizeVenueSize_invalidSizes() {
@@ -106,37 +112,77 @@ public class TicketServiceImplTest {
 		
 		service.initializeVenueSize(venueSeats);
 		
+		// Hold the seats
 		SeatHold seatHold = service.findAndHoldSeats(5, email);
 		seatHold.setService(service);
 		
 		List<Seat> mySeats = seatHold.getSeats();
 		
-		// Success
+		// Reserve held seats
 		String reservationId = service.reserveSeats(seatHold.getId(), seatHold.getCustomerEmail());
 		assertNotNull(reservationId);
 		assertTrue(reservationId.equals(service.MSG_SH_RESERVED_CONFIRMATION_PREFIX + seatHold.getId()));
 
 		// Failure - invalid seat holder id
 		int invalidSeatHoldId = 1051;
-		reservationId = service.reserveSeats(invalidSeatHoldId, "someone@whatever");
+		reservationId = service.reserveSeats(invalidSeatHoldId, email);
 		assertTrue(reservationId.equals(service.MSG_SH_INVALID_ID));
 		
 		// Failure - bad seat holder
 		seatHold.setActive(false);
-		reservationId = service.reserveSeats(seatHold.getId(), "someone@whatever");
+		reservationId = service.reserveSeats(seatHold.getId(), email);
 		assertTrue(reservationId.equals(service.MSG_SH_NOT_ACTIVE));
 		
-		seatHold.setActive(true);
-		seatHold.getSeats().clear();
-		reservationId = service.reserveSeats(seatHold.getId(), "someone@whatever");
-		assertTrue(reservationId.equals(service.MSG_SH_BAD_SEATS));
 		
+		// Make another reservation
+		SeatHold sh2 = service.findAndHoldSeats(5, email);
+		sh2.setId(1);
+		sh2.holdSeats(1000);
+		assertEquals(5, sh2.getSeats().size());
+		
+		boolean found6 = false;
+		boolean found7 = false;
+		boolean found8 = false;
+		boolean found9 = false;
+		boolean found10 = false;
+		
+		for(Seat s : sh2.getSeats()) {
+			if(s.getRow() == 0 && s.getNum() == 2) {
+				found6 = true;
+			}
+			else if(s.getRow() == 0 && s.getNum() == 8) {
+				found7 = true;
+			}
+			else if(s.getRow() == 0 && s.getNum() == 1) {
+				found8 = true;
+			}
+			else if(s.getRow() == 0 && s.getNum() == 9) {
+				found9 = true;
+			}
+			else if(s.getRow() == 0 && s.getNum() == 0) {
+				found10 = true;
+			}
+		}
+		assertTrue(found6);
+		assertTrue(found7);
+		assertTrue(found8);
+		assertTrue(found9);
+		assertTrue(found10);
+		
+		reservationId = service.reserveSeats(sh2.getId(), email);
+		assertEquals(service.MSG_SH_RESERVED_CONFIRMATION_PREFIX + sh2.getId(), reservationId);
+		assertFalse(sh2.getActive());
+		for(Seat s : sh2.getSeats()) {
+			assertEquals(email, s.getCustomerEmail());
+			assertTrue(s.getReserved());
+			assertFalse(s.getHold());
+		}
 	}
 	
 	@Test 
 	public void test_holdSeat_oneRow() {
 		TicketServiceImpl service = new TicketServiceImpl();
-		service.setHoldSeatsTimeMillis(3000);
+		service.setHoldSeatsTimeMillis(5000);
 		
 		// Even seats in row
 		List<Integer> venueSeats = new ArrayList<>();
@@ -174,8 +220,6 @@ public class TicketServiceImplTest {
 			assertTrue(s.getHold());
 			assertFalse(s.getAvailable());
 			assertFalse(s.getReserved());
-			
-			System.out.println("SEAT FOUND: " + s);
 		}
 		assertEquals(email, seatHold.getCustomerEmail());
 		assertTrue(foundSeat1);
@@ -242,8 +286,6 @@ public class TicketServiceImplTest {
 			assertTrue(s.getHold());
 			assertFalse(s.getAvailable());
 			assertFalse(s.getReserved());
-			
-			System.out.println("SEAT FOUND: " + s);
 		}
 		assertEquals(email, seatHold.getCustomerEmail());
 		assertTrue(foundSeat1);
@@ -255,9 +297,9 @@ public class TicketServiceImplTest {
 	}
 	
 	@Test 
-	public void test_holdSeat_multiRows() {
+	public void test_holdSeat_andReserveFails() {
 		TicketServiceImpl service = new TicketServiceImpl();
-		service.setHoldSeatsTimeMillis(3000);
+		service.setHoldSeatsTimeMillis(5000);
 		
 		// Multi-rows of seats
 		List<Integer> venueSeats = new ArrayList<>();
@@ -298,8 +340,6 @@ public class TicketServiceImplTest {
 			assertTrue(s.getHold());
 			assertFalse(s.getAvailable());
 			assertFalse(s.getReserved());
-			
-			System.out.println("SEAT FOUND: " + s);
 		}
 		assertEquals(email, seatHold.getCustomerEmail());
 		assertTrue(foundSeat1);
@@ -312,9 +352,7 @@ public class TicketServiceImplTest {
 		
 		// Wait until "on hold" expires
 		try {
-			System.out.println("waiting...");
-			TimeUnit.SECONDS.sleep(5);
-			System.out.println("waiting...done");
+			TimeUnit.SECONDS.sleep(6);
 			assertTrue(!seatHold.getActive());
 			
 			for(Seat s : mySeats) {
@@ -330,5 +368,47 @@ public class TicketServiceImplTest {
 		int seatHoldId = seatHold.getId();
 		String confirmationId = service.reserveSeats(seatHoldId, email);
 		assertTrue(TicketService.MSG_SH_INVALID_ID.equals(confirmationId));
+	}
+	
+	@Test 
+	public void test_holdSeat_andReserveSuccess() {
+		TicketServiceImpl service = new TicketServiceImpl();
+		service.setHoldSeatsTimeMillis(5000);
+		
+		// Multi-rows of seats
+		List<Integer> venueSeats = new ArrayList<>();
+		venueSeats.add(1);
+		venueSeats.add(2);
+		venueSeats.add(0);
+		venueSeats.add(10);
+		
+		service.initializeVenueSize(venueSeats);
+		
+		SeatHold seatHold = service.findAndHoldSeats(5, email);
+		seatHold.setService(service);
+		
+		List<Seat> mySeats = seatHold.getSeats();
+		assertEquals(5, mySeats.size());
+		
+		// Wait a bit but still in "on hold" timeframe
+		try {
+			TimeUnit.SECONDS.sleep(2);
+			assertTrue(seatHold.getActive());
+			
+			for(Seat s : mySeats) {
+				assertTrue(s.getHold());
+				assertFalse(s.getReserved());
+			}
+		} 
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		String reservationId = service.reserveSeats(seatHold.getId(), "someone@whatever.com");
+		assertTrue(reservationId.equals(service.MSG_SH_RESERVED_CONFIRMATION_PREFIX + seatHold.getId()));
+		assertFalse(seatHold.getActive());
+		for(Seat s : seatHold.getSeats()) {
+			assertFalse(s.getHold());
+			assertTrue(s.getReserved());
+		}
 	}
 }

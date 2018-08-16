@@ -12,6 +12,12 @@ The seats returned for an on hold request will be determined by the ticketing se
 to find the best seats available. The assumption is that the best seats are the closest to the stage, and 
 starting out with the middle seat and spreading out to the edges of that row.
 
+A seat is available for hold if the seat is not already on hold and is not reserved.
+
+A "seat hold" is concept to hold seats for a particular user. If the seat hold is active, then the seat hold
+can be reserved. If the "on hold" time expired, the seat hold is not active and cannot be used to reserve the
+seats.
+
 ### compiling and creating the ticketing service
 To compile the source code, clone this rep and install maven.
 

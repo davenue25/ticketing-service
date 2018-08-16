@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class BaseModel {
 
+	/**
+	 * Represent models as JSON strings.
+	 */
 	@Override
 	public String toString() {
 		ObjectMapper om = new ObjectMapper();

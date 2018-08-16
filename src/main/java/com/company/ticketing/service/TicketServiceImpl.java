@@ -10,6 +10,11 @@ import org.apache.commons.validator.routines.EmailValidator;
 import com.company.ticketing.model.Seat;
 import com.company.ticketing.model.SeatHold;
 
+/**
+ * Ticket service implementation
+ * @author daniel
+ *
+ */
 public class TicketServiceImpl implements TicketService {
 	
 	private long seatsHoldTimeMillis = 60000l; // default one minute
@@ -168,7 +173,7 @@ public class TicketServiceImpl implements TicketService {
 		seatHold.setCustomerEmail(customerEmail);
 		
 		// Find the best seat in the venue
-		// Assumption: best seat equals closest to stage, and in the middle of the row
+		// Assumption: best seat equals closest to stage, and in the middle of the row, then spreading out to sides
 		int foundSeats = 0;
 		
 		int op = 0; // 0 = middle, -1 go left of middle, 1 go right of middle

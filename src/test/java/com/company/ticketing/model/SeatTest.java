@@ -30,9 +30,7 @@ public class SeatTest {
         Seat model = new Seat(row, num);
 
         model.setReserved(reserved);
-        model.setNum(num);
         model.setHold(hold);
-        model.setRow(row);
         model.setCustomerEmail(email);
 
         assertEquals(false, model.getAvailable());
@@ -58,6 +56,23 @@ public class SeatTest {
         model.setHold(true);
         assertFalse(model.getAvailable());
         
+        // Invalid seat number/row
+        boolean exceptionFlag = false;
+        try {
+        	model = new Seat(-1, 1);
+        }
+        catch(IllegalArgumentException ex) {
+        	exceptionFlag = true;
+        }
+        assertTrue(exceptionFlag);
         
+        exceptionFlag = false;
+        try {
+        	model = new Seat(0, -1);
+        }
+        catch(IllegalArgumentException ex) {
+        	exceptionFlag = true;
+        }
+        assertTrue(exceptionFlag);
     }
 }

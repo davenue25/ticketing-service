@@ -13,6 +13,9 @@ import com.company.ticketing.service.TicketService;
  * for a specified amount of time. After that time expires, they
  * are no longer "on hold" and this seat hold object is not active.
  * 
+ * Add the seats to this object. Once the call to the hold method
+ * is called, this seat hold become active and the seats become held.
+ * 
  * @author daniel
  *
  */
@@ -75,6 +78,11 @@ public class SeatHold extends BaseModel {
 		}
 	}
 	
+	/**
+	 * Hold the seats after you added all seats you want to hold to this object.
+	 * 
+	 * @param seatsHoldTimeMillis how long does the hold last for?
+	 */
 	public void holdSeats(long seatsHoldTimeMillis) {
 		if(seatList != null && seatList.size() > 0) {
 			for(Seat seat : seatList) {
@@ -97,6 +105,9 @@ public class SeatHold extends BaseModel {
 		}
 	}
 	
+	/**
+	 * Cancel the hold for all seats.
+	 */
 	public void cancelHold() {
 		active = false;
 		service.cancelSeatHold(this);
@@ -116,13 +127,13 @@ public class SeatHold extends BaseModel {
 	 * @return true if reserved, or false if not reserved
 	 */
 	public boolean reserveSeats() {
-		reserving = true;
-		
 		if(!holdSeatsFlag) {
 			return false;
 		}
 		
 		boolean reservedFlag = false;
+		
+		reserving = true;
 		
 		if(active) {
 			if(seatList != null && seatList.size() > 0) {

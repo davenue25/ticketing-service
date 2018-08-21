@@ -314,12 +314,6 @@ public class TicketServiceImpl implements TicketService {
 			if(seats != null && totalRows > 0) {
 				for(Seat seat : seats) {
 					seat.setHold(false);
-					int row = seat.getRow();
-					int num = seat.getNum();
-					
-					ArrayList<Seat> currentRow = venueSeats.get(row);
-					currentRow.set(num, seat);
-					
 				}
 			}
 		}

@@ -9,14 +9,7 @@ public interface TicketService {
 	/** An invalid seat holder id was specified */
 	public static final String MSG_SH_INVALID_ID = "SH_INVALID_ID";
 	
-	/** The confirmation prefix string for when a seat hold is reserved */
-	public static final String MSG_SH_RESERVED_CONFIRMATION_PREFIX = "SH_CONFIRMATION_NUMBER-";
-	
-	/** When a seat hold is not active */
-	public static final String MSG_SH_NOT_ACTIVE = "SH_NOT_ACTIVE";
-	
-	/** When a seat hold has encountered some bad seats in its hold */
-	public static final String MSG_SH_BAD_SEATS = "SH_BAD_SEATS";
+	public static final String MSG_CANNOT_RESERVE_SEATHOLD = "SH_CANNOT_RESERVE";
 	
 	/**
 	 * The number of seats in the venue that are neither held nor reserved

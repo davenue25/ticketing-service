@@ -20,8 +20,33 @@ import com.company.ticketing.service.TicketService;
  *
  */
 public class SeatHold extends BaseModel {
+	
+	/** The reservation confirmation code */
+	public static final String RES_CODE_PREFIX = "RESERVATION-CODE-";
+	
+	/** Validation statuses */
+	public enum Status {
+		NOT_ACTIVE("Seat hold not active"),
+		BAD_SEATS("Null or empty seats");
+		
+		private String text;
+		Status(String text) {
+			this.text = text;
+		}
+		
+		public String text() {
+			return text;
+		}
+	}
+	/** List of error messages generating during validation */
+	private List<Status> statusList = new ArrayList<>();
 
+	/** The list of seats in this seat hold */
 	private List<Seat> seatList = new ArrayList<>();
+	
+	
+	
+	public String resCode = null;
 	
 	// Is this seat hold active?
 	private boolean active = false;
@@ -39,6 +64,15 @@ public class SeatHold extends BaseModel {
 	public SeatHold(TicketService service) {
 		this.service = service;
 	}
+	
+	/**
+	 * The reservation confirmation code. If not reserved, this returns null.
+	 * @return
+	 */
+	public String getResCode() {
+		return resCode;
+	}
+
 	
 	public TicketService getService() {
 		return service;
@@ -114,6 +148,34 @@ public class SeatHold extends BaseModel {
 	}
 	
 	/**
+	 * Validate this seat holder object
+	 * 
+	 * @return List of Status messages if something did not validate or empty list if everything is OK
+	 */
+	public List<Status> validate() {
+		
+		statusList.clear();
+		
+		if(!getActive()) {
+			statusList.add(Status.NOT_ACTIVE);
+		}
+		else if(getSeats() == null || getSeats().size() == 0) {
+			statusList.add(Status.BAD_SEATS);
+		};
+		
+		return statusList;
+	}
+	
+	/**
+	 * Get the list of validation status messages. These messages are
+	 * created after calling the {@link #validate()} method.
+	 * @return
+	 */
+	public List<Status> getValidationMessages() {
+		return statusList;
+	}
+	
+	/**
 	 * Reserve seats that are in this seat hold object.
 	 * 
 	 * You must call {@link #holdSeats(long)} first before calling this method.
@@ -130,6 +192,10 @@ public class SeatHold extends BaseModel {
 		if(!holdSeatsFlag) {
 			return false;
 		}
+		else if(validate().size() > 0) {
+			return false;
+		}
+		
 		
 		boolean reservedFlag = false;
 		
@@ -149,6 +215,8 @@ public class SeatHold extends BaseModel {
 		reserving = false;
 		
 		setActive(false);
+		
+		resCode = RES_CODE_PREFIX + getId();
 		
 		return reservedFlag;
 	}

@@ -168,7 +168,6 @@ public class TicketServiceImpl implements TicketService {
 		SeatHold seatHold = new SeatHold(this);
 		seatHold.setId(seatHolderIdCounter);
 		seatHolderIdCounter++;
-		seatHold.setActive(true);
 		
 		seatHold.setCustomerEmail(customerEmail);
 		
@@ -260,6 +259,7 @@ public class TicketServiceImpl implements TicketService {
 		if(seatHold.totalSeats() > 0) {
 			seatHold.holdSeats(seatsHoldTimeMillis);
 			seatHoldMap.put(seatHold.getId(), seatHold);
+			int x = 0;
 		}
 		
 		return seatHold;
@@ -288,19 +288,20 @@ public class TicketServiceImpl implements TicketService {
 		if(seatHold != null) {
 			boolean reserved = seatHold.reserveSeats();
 			if(reserved) {
-				return MSG_SH_RESERVED_CONFIRMATION_PREFIX + seatHold.getId();
+				return seatHold.getResCode();
 			}
-			else {
-				if(!seatHold.getActive()) {
-					return MSG_SH_NOT_ACTIVE;
-				}
-				else if(seatHold.getSeats() == null || seatHold.getSeats().size() == 0) {
-					return MSG_SH_BAD_SEATS;
-				}
-			}
-			
 		}
-		return MSG_SH_INVALID_ID;
+		return null;
+	}
+	
+	/** 
+	 * Find a seat hold by id
+	 *  
+	 * @param seatHoldId
+	 * @return seat hold or null if not found
+	 */
+	public SeatHold getSeatHold(int seatHoldId) {
+		return seatHoldMap.get(seatHoldId);
 	}
 
 	@Override

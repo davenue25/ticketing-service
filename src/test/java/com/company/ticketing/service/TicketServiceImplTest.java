@@ -3,6 +3,7 @@ package com.company.ticketing.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.company.ticketing.model.Seat;
 import com.company.ticketing.model.SeatHold;
+import com.company.ticketing.model.SeatHold.Status;
 
 /**
  * Test for the ticketing service implementation.
@@ -121,18 +123,8 @@ public class TicketServiceImplTest {
 		// Reserve held seats
 		String reservationId = service.reserveSeats(seatHold.getId(), seatHold.getCustomerEmail());
 		assertNotNull(reservationId);
-		assertTrue(reservationId.equals(service.MSG_SH_RESERVED_CONFIRMATION_PREFIX + seatHold.getId()));
+		assertTrue(reservationId.equals(SeatHold.RES_CODE_PREFIX + seatHold.getId()));
 
-		// Failure - invalid seat holder id
-		int invalidSeatHoldId = 1051;
-		reservationId = service.reserveSeats(invalidSeatHoldId, email);
-		assertTrue(reservationId.equals(service.MSG_SH_INVALID_ID));
-		
-		// Failure - bad seat holder
-		seatHold.setActive(false);
-		reservationId = service.reserveSeats(seatHold.getId(), email);
-		assertTrue(reservationId.equals(service.MSG_SH_NOT_ACTIVE));
-		
 		
 		// Make another reservation
 		SeatHold sh2 = service.findAndHoldSeats(5, email);
@@ -170,7 +162,7 @@ public class TicketServiceImplTest {
 		assertTrue(found10);
 		
 		reservationId = service.reserveSeats(sh2.getId(), email);
-		assertEquals(service.MSG_SH_RESERVED_CONFIRMATION_PREFIX + sh2.getId(), reservationId);
+		assertEquals(SeatHold.RES_CODE_PREFIX + sh2.getId(), reservationId);
 		assertFalse(sh2.getActive());
 		for(Seat s : sh2.getSeats()) {
 			assertEquals(email, s.getCustomerEmail());
@@ -316,6 +308,7 @@ public class TicketServiceImplTest {
 		List<Seat> mySeats = seatHold.getSeats();
 		assertEquals(5, mySeats.size());
 		
+		// The seats received
 		boolean foundSeat1 = false;
 		boolean foundSeat2 = false;
 		boolean foundSeat3 = false;
@@ -356,18 +349,20 @@ public class TicketServiceImplTest {
 			assertTrue(!seatHold.getActive());
 			
 			for(Seat s : mySeats) {
-				assertTrue(!s.getHold());
-				assertTrue(!s.getReserved());
+				assertTrue(s.getAvailable());
+				assertFalse(s.getHold());
+				assertFalse(s.getReserved());
 			}
 		} 
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		assertFalse(seatHold.getActive());
 		
 		// After expiration, try to reserve the seats (fails)
 		int seatHoldId = seatHold.getId();
-		String confirmationId = service.reserveSeats(seatHoldId, email);
-		assertTrue(TicketService.MSG_SH_INVALID_ID.equals(confirmationId));
+		String resCode = service.reserveSeats(seatHoldId, email);
+		assertNull(resCode);
 	}
 	
 	@Test 
@@ -404,7 +399,7 @@ public class TicketServiceImplTest {
 			e.printStackTrace();
 		}
 		String reservationId = service.reserveSeats(seatHold.getId(), "someone@whatever.com");
-		assertTrue(reservationId.equals(service.MSG_SH_RESERVED_CONFIRMATION_PREFIX + seatHold.getId()));
+		assertTrue(reservationId.equals(SeatHold.RES_CODE_PREFIX + seatHold.getId()));
 		assertFalse(seatHold.getActive());
 		for(Seat s : seatHold.getSeats()) {
 			assertFalse(s.getHold());
